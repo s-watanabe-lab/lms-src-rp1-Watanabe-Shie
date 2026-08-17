@@ -65,4 +65,15 @@ public interface TStudentAttendanceMapper {
 	 */
 	Boolean update(TStudentAttendance tStudentAttendance);
 
+	/**
+	 *過去日の未入力件数取得 
+	 * 
+	 * @param lmsUserId  ユーザーId
+	 * @param deletFlg 削除フラグ
+	 * @param currentDate 現在日付
+	 * @return 未入力件数
+	 */
+	Integer notEnterCheck(@Param("lmsUserId") Integer lmsUserId,
+			@Param("deleteFlg") Short deletFlg,
+			@Param("currentDate") Date currentDate);
 }

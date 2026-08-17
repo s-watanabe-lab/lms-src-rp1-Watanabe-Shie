@@ -31,6 +31,8 @@ import jp.co.sss.lms.util.TrainingTime;
 @Service
 public class StudentAttendanceService {
 
+	//	@Autowired
+	//	private TrainingTime trainingTime;
 	@Autowired
 	private DateUtil dateUtil;
 	@Autowired
@@ -41,6 +43,8 @@ public class StudentAttendanceService {
 	private LoginUserUtil loginUserUtil;
 	@Autowired
 	private LoginUserDto loginUserDto;
+	//	@Autowired
+	//	private MLmsUserMapper mLmsUserMapper;
 	@Autowired
 	private TStudentAttendanceMapper tStudentAttendanceMapper;
 
@@ -330,8 +334,32 @@ public class StudentAttendanceService {
 				tStudentAttendanceMapper.update(tStudentAttendance);
 			}
 		}
+
 		// 完了メッセージ
 		return messageUtil.getMessage(Constants.PROP_KEY_ATTENDANCE_UPDATE_NOTICE);
+	}
+
+	//Task.25：過去日の未入力チェック
+	public boolean notEnterCheck() throws ParseException {
+
+		//Service内でユーザーIDを取得する
+		Integer lmsUserId = loginUserDto.getLmsUserId();
+
+		//1.今日の日付を取得する
+		Date today = new Date();
+
+		//削除フラグ（0：未削除）
+		Short deleteFlg = 0;
+
+		//Mapperを呼び出し、未入力件数（Integer）を取得する
+		Integer count = tStudentAttendanceMapper.notEnterCheck(lmsUserId, deleteFlg, today);
+
+		//件数が0より大きければ、true、そうでなければfaｌseを返す
+		if (count != null && count > 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }
