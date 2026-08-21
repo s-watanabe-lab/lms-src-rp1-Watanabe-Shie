@@ -2,6 +2,7 @@ package jp.co.sss.lms.form;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Data;
 
@@ -31,5 +32,10 @@ public class AttendanceForm {
 	private LinkedHashMap<Integer, String> blankTimes;
 	/** 日次の勤怠フォームリスト */
 	private List<DailyAttendanceForm> attendanceList;
-
+	
+	//Task.26
+	/** 時間マップ */
+	private Map<Integer, String> hourMap;
+	/** 分マップ */
+	private Map<Integer, String> minuteMap;
 }

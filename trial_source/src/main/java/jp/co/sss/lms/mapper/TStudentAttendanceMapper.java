@@ -75,5 +75,6 @@ public interface TStudentAttendanceMapper {
 	 */
 	Integer notEnterCheck(@Param("lmsUserId") Integer lmsUserId,
 			@Param("deleteFlg") Short deletFlg,
-			@Param("currentDate") Date currentDate);
+			@Param("currentDate") Date trainingDate);
+
 }

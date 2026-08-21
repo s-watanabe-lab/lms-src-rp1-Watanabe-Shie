@@ -47,11 +47,11 @@ public class AttendanceController {
 				.getAttendanceManagement(loginUserDto.getCourseId(), loginUserDto.getLmsUserId());
 		model.addAttribute("attendanceManagementDtoList", attendanceManagementDtoList);
 
-		//
+		//Task.25：過去日のみ入力チェックを追加
 		boolean hasUnentered = studentAttendanceService.notEnterCheck();
-		System.out.println("★チェック結果: " + hasUnentered); 
-		//
+
 		model.addAttribute("hasUnentered", hasUnentered);
+
 		return "attendance/detail";
 	}
 
@@ -137,6 +137,9 @@ public class AttendanceController {
 	@RequestMapping(path = "/update", params = "complete", method = RequestMethod.POST)
 	public String complete(AttendanceForm attendanceForm, Model model, BindingResult result)
 			throws ParseException {
+
+		//Task.26 画面から来た「時・分」を「hh:mm」形式の文字列にしてフォームにセットする
+		studentAttendanceService.formatConversion(attendanceForm);
 
 		// 更新
 		String message = studentAttendanceService.update(attendanceForm);

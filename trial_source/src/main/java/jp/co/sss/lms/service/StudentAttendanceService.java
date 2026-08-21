@@ -3,7 +3,9 @@ package jp.co.sss.lms.service;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import jp.co.sss.lms.util.TrainingTime;
  * 
  * @author 東京ITスクール
  */
+
 @Service
 public class StudentAttendanceService {
 
@@ -255,8 +258,53 @@ public class StudentAttendanceService {
 					.dateToString(attendanceManagementDto.getTrainingDate(), "yyyy年M月d日(E)"));
 			dailyAttendanceForm.setStatusDispName(attendanceManagementDto.getStatusDispName());
 
+			/**
+			 * Task.26 ：出退勤時刻のプルダウン初期値をセット。
+			 * DBから取得した「hh:mm」形式の文字列を、プルダウンの「時」と「分」に分割する。
+			 * 既存のユーティリティ（TrainingTimeクラス）のコンストラクタに文字列を渡す。
+			 */
+
+			//出勤自国の分割
+			String startTime = attendanceManagementDto.getTrainingStartTime();
+			if (startTime != null && !startTime.isEmpty()) {
+				TrainingTime ttStart = new TrainingTime(startTime);// Utilに分割を任せる
+				dailyAttendanceForm.setTrainingStartTimeHour(ttStart.getHour());// 「時」をセット
+				dailyAttendanceForm.setTrainingStartTimeMinute(ttStart.getMinute());// 「分」をセット
+			}
+
+			//退勤時間の分割
+			String endTime = attendanceManagementDto.getTrainingEndTime();
+			if (startTime != null && !startTime.isEmpty()) {
+				TrainingTime ttEnd = new TrainingTime(endTime);// Utilに分割を任せる
+				dailyAttendanceForm.setTrainingEndTimeHour(ttEnd.getHour());// 「時」をセット
+				dailyAttendanceForm.setTrainingEndTimeMinute(ttEnd.getMinute());// 「分」をセット
+
+			}
 			attendanceForm.getAttendanceList().add(dailyAttendanceForm);
+
 		}
+		/**
+		 *Task.26 ：画面のプルダウン用の選択肢データ（Map）作成。
+		 *keyにはInteger型の数値、valueには画面表示用のString型をセットする。
+		 *Thymeleafのループ処理でこのMapを展開して<option>タグを生成する。
+		 */
+
+		//時間マップ(0～23）
+		Map<Integer, String> hourMap = new LinkedHashMap<>();
+		hourMap.put(null, "");
+		for (int i = 0; i < 24; i++) {
+			hourMap.put(i, String.format("%02d", i));
+		}
+
+		//分マップ(0～59）
+		Map<Integer, String> minuteMap = new LinkedHashMap<>();
+		minuteMap.put(null, "");
+		for (int i = 0; i < 60; i++) {
+			minuteMap.put(i, String.format("%02d", i));
+		}
+
+		attendanceForm.setHourMap(hourMap);
+		attendanceForm.setMinuteMap(minuteMap);
 
 		return attendanceForm;
 	}
@@ -339,7 +387,11 @@ public class StudentAttendanceService {
 		return messageUtil.getMessage(Constants.PROP_KEY_ATTENDANCE_UPDATE_NOTICE);
 	}
 
-	//Task.25：過去日の未入力チェック
+	/**
+	 * Task.25：過去日の未入力チェック
+	 * @return 未入力がある場合はtrue, ない場合はfalse
+	 * @throws ParseException
+	 */
 	public boolean notEnterCheck() throws ParseException {
 
 		//Service内でユーザーIDを取得する
@@ -362,4 +414,48 @@ public class StudentAttendanceService {
 		}
 	}
 
+	/**
+	 *Task.26 ：出退勤時刻のフォーマット変換処理（更新前処理）
+	 *
+	 *画面からPOSTされたプルダウンの「時」と「分」を結合し、
+	 *DB更新用の「hh:mm」形式に変換してフォームオブジェクトにセットする。
+	 *コントローラーのupdateメソッド内で、DB更新処理を呼ぶ直前に実行される。
+	 *
+	 *@param attendanceForm
+	 */
+
+	//フォーム内の「時」と「分」の入力を、「hh:mm」形式の文字列に変換してセット
+	public void formatConversion(AttendanceForm attendanceForm) {
+
+		if (attendanceForm == null || attendanceForm.getAttendanceList() == null) {
+			return;
+		}
+
+		for (DailyAttendanceForm dailyAttendanceForm : attendanceForm.getAttendanceList()) {
+
+			//出勤の「時」と「分」を分割してセット
+			if (dailyAttendanceForm.getTrainingStartTimeHour() != null
+					&& dailyAttendanceForm.getTrainingStartTimeMinute() != null) {
+
+				String startTime = String.format("%02d:%02d",
+						dailyAttendanceForm.getTrainingStartTimeHour(),
+						dailyAttendanceForm.getTrainingStartTimeMinute());
+				dailyAttendanceForm.setTrainingStartTime(startTime);
+			} else {
+				dailyAttendanceForm.setTrainingStartTime("");
+			}
+
+			//出勤の「時」と「分」を分割してセット
+			if (dailyAttendanceForm.getTrainingEndTimeHour() != null
+					&& dailyAttendanceForm.getTrainingEndTimeMinute() != null) {
+
+				String endTime = String.format("%02d:%02d",
+						dailyAttendanceForm.getTrainingEndTimeHour(),
+						dailyAttendanceForm.getTrainingEndTimeMinute());
+				dailyAttendanceForm.setTrainingEndTime(endTime);
+			} else {
+				dailyAttendanceForm.setTrainingEndTime("");
+			}
+		}
+	}
 }
