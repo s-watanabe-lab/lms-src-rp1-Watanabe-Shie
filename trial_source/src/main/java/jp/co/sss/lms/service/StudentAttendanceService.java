@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 
 import jp.co.sss.lms.dto.AttendanceManagementDto;
 import jp.co.sss.lms.dto.LoginUserDto;
@@ -259,7 +260,7 @@ public class StudentAttendanceService {
 			dailyAttendanceForm.setStatusDispName(attendanceManagementDto.getStatusDispName());
 
 			/**
-			 * Task.26 ：出退勤時刻のプルダウン初期値をセット。
+			 * 渡辺志映 --Task.26 ：出退勤時刻のプルダウン初期値をセット。--
 			 * DBから取得した「hh:mm」形式の文字列を、プルダウンの「時」と「分」に分割する。
 			 * 既存のユーティリティ（TrainingTimeクラス）のコンストラクタに文字列を渡す。
 			 */
@@ -274,7 +275,7 @@ public class StudentAttendanceService {
 
 			//退勤時間の分割
 			String endTime = attendanceManagementDto.getTrainingEndTime();
-			if (startTime != null && !startTime.isEmpty()) {
+			if (startTime != null && !endTime.isEmpty()) {
 				TrainingTime ttEnd = new TrainingTime(endTime);// Utilに分割を任せる
 				dailyAttendanceForm.setTrainingEndTimeHour(ttEnd.getHour());// 「時」をセット
 				dailyAttendanceForm.setTrainingEndTimeMinute(ttEnd.getMinute());// 「分」をセット
@@ -284,7 +285,7 @@ public class StudentAttendanceService {
 
 		}
 		/**
-		 *Task.26 ：画面のプルダウン用の選択肢データ（Map）作成。
+		 *渡辺志映 --Task.26 ：画面のプルダウン用の選択肢データ（Map）作成。--
 		 *keyにはInteger型の数値、valueには画面表示用のString型をセットする。
 		 *Thymeleafのループ処理でこのMapを展開して<option>タグを生成する。
 		 */
@@ -388,7 +389,8 @@ public class StudentAttendanceService {
 	}
 
 	/**
-	 * Task.25：過去日の未入力チェック
+	 * 渡辺志映 --Task.25：勤怠管理画面--
+	 * 過去日の未入力チェック
 	 * @return 未入力がある場合はtrue, ない場合はfalse
 	 * @throws ParseException
 	 */
@@ -404,7 +406,7 @@ public class StudentAttendanceService {
 		Short deleteFlg = 0;
 
 		//Mapperを呼び出し、未入力件数（Integer）を取得する
-		Integer count = tStudentAttendanceMapper.notEnterCheck(lmsUserId, deleteFlg, today);
+		Integer count = tStudentAttendanceMapper.notEnterCount(lmsUserId, deleteFlg, today);
 
 		//件数が0より大きければ、true、そうでなければfaｌseを返す
 		if (count != null && count > 0) {
@@ -415,7 +417,7 @@ public class StudentAttendanceService {
 	}
 
 	/**
-	 *Task.26 ：出退勤時刻のフォーマット変換処理（更新前処理）
+	 *渡辺志映 --Task.26 ：出退勤時刻のフォーマット変換処理（更新前処理）--
 	 *
 	 *画面からPOSTされたプルダウンの「時」と「分」を結合し、
 	 *DB更新用の「hh:mm」形式に変換してフォームオブジェクトにセットする。
@@ -433,7 +435,7 @@ public class StudentAttendanceService {
 
 		for (DailyAttendanceForm dailyAttendanceForm : attendanceForm.getAttendanceList()) {
 
-			//出勤の「時」と「分」を分割してセット
+			//出勤の「時」と「分」を結合してセット
 			if (dailyAttendanceForm.getTrainingStartTimeHour() != null
 					&& dailyAttendanceForm.getTrainingStartTimeMinute() != null) {
 
@@ -445,7 +447,7 @@ public class StudentAttendanceService {
 				dailyAttendanceForm.setTrainingStartTime("");
 			}
 
-			//出勤の「時」と「分」を分割してセット
+			//出勤の「時」と「分」を結合してセット
 			if (dailyAttendanceForm.getTrainingEndTimeHour() != null
 					&& dailyAttendanceForm.getTrainingEndTimeMinute() != null) {
 
@@ -456,6 +458,131 @@ public class StudentAttendanceService {
 			} else {
 				dailyAttendanceForm.setTrainingEndTime("");
 			}
+		}
+	}
+
+	/**
+	 * 渡辺志映 --Task.27 勤怠時間
+	 * Ⅱ．入力パラメータ．勤怠リスト[n]の件数分、下記チェックを行う
+	 * ａ．入力パラメータ．勤怠リスト[n]．備考の文字数　＞　100　の場合、下記エラーメッセージを追加設定
+	 * メッセージID：maxlength、パラメータ："備考"、"100"
+	 * 
+	 * ｂ．入力パラメータ．勤怠リスト[n]．出勤時間（時）、出勤時間（分）の一方が入力有り　＆　もう一方が入力なしの場合、
+	 * メッセージID：input.invalid、パラメータ："出勤時間"
+	 * 
+	 * ｃ．入力パラメータ．勤怠リスト[n]．退勤時間（時）、退勤時間（分）の一方が入力有り　＆　もう一方が入力なしの場合、 
+	 * メッセージID：input.invalid、パラメータ："退勤時間"
+	 * 
+	 * ｄ．入力パラメータ．勤怠リスト[n]．出勤時間に入力なし　＆　退勤時間に入力あり　の場合、
+	 * メッセージID:attendance.punchInEmpty、パラメータ：なし
+	 * 
+	 * ｅ．入力パラメータ．勤怠リスト[n]．出勤時間　＞　退勤時間　の場合、下記エラーメッセージを追加設定
+	 * メッセージID:attendance.training.TimeRange、パラメータ：n
+	 * 
+	 * ｆ．入力パラメータ．勤怠リスト[n]．中抜け時間が勤務時間（出勤時間～退勤時間までの時間）を超える場合、下記エラーメッセージを追加設定
+	 * メッセージID:attendance.blank.TimeError、パラメータ：なし
+	 * 
+	 * Ⅲ．Ⅱでエラーメッセージが設定されていた場合、下記内容を設定し勤怠情報直接変更画面へ遷移
+	 * 勤怠FORM．中抜け時間（選択肢）= 勤怠Utilを使用して選択肢用の中抜け時間マップを取得
+	 * 勤怠FORM．時間マップ（選択肢）= 勤怠Utilを使用して選択肢用の時間マップを取得
+	 * 勤怠FORM．分マップ（選択肢）= 勤怠Utilを使用して選択肢用の分マップを取得
+	 * 
+	 * 画面レイアウト設計書より、
+	 * コントローラー：/attendance/update
+	 * パラメータ：complete
+	 */
+
+	/**
+	 * 渡辺志映 --Task.27 勤怠管理直接変更画面（入力チェックの実装、ダイアログの追加）
+	 * 
+	 * @param attendanceForm 画面からの入力値
+	 * @param result バリデーション結果
+	 */
+	public void updateInputCheck(AttendanceForm attendanceForm, BindingResult result) {
+
+		List<DailyAttendanceForm> list = attendanceForm.getAttendanceList();
+
+		for (int i = 0; i < list.size(); i++) {
+
+			DailyAttendanceForm form = list.get(i);
+
+			//a.備考100文字チェック
+			if (form.getNote() != null && form.getNote().length() > 100) {
+
+				//メッセージIDとパラメータを指定してエラー登録
+				result.reject("maxlength", new Object[] { "備考", "100" }, null);
+			}
+
+			//b.出勤「時」と「分」の片側未入力チェック
+			if ((form.getTrainingStartTimeHour() != null && form.getTrainingStartTimeMinute() == null)
+					|| (form.getTrainingStartTime() == null && form.getTrainingStartTimeMinute() != null)) {
+				result.reject("inout.invalid", new Object[] { "出勤時間" }, null);
+			}
+
+			//c. 出勤「時」と「分」の片側未入力チェック
+			if ((form.getTrainingEndTimeHour() != null && form.getTrainingEndTimeMinute() == null)
+					|| (form.getTrainingEndTime() == null && form.getTrainingEndTimeMinute() != null)) {
+				result.reject("inout.invalid", new Object[] { "退勤時間" }, null);
+			}
+
+			// 出退勤入力の有無判定（時・分が揃っているか）
+			boolean hasStart = (form.getTrainingStartTimeHour() != null && form.getTrainingStartTimeMinute() != null);
+			boolean hasEnd = (form.getTrainingEndTimeHour() != null && form.getTrainingEndTimeMinute() != null);
+
+			// d. 出勤時間に入力無し & 退勤時間に入力ありの場合
+			if (!hasStart && hasEnd) {
+				result.reject("attendance.punchInEmpty", null, null);
+			}
+
+			// 出退勤の両方が入力されている場合のみ、時間の比較計算を行う
+			if (hasStart && hasEnd) {
+
+				// 時刻を「合計分」に換算（計算しやすい数値に変換）
+				TrainingTime start = new TrainingTime(form.getTrainingStartTime());
+				TrainingTime end = new TrainingTime(form.getTrainingEndTime());
+
+				int startMinutes = start.getHour() * 60 + start.getMinute();
+				int endMinutes = end.getHour() * 60 + end.getMinute();
+
+				//e.出勤時間 > 退勤時間の場合
+				if (startMinutes > endMinutes) {
+					result.reject("attendance.trainingTimeRange", new Object[] { i + 1 }, null);
+				}
+
+				//f.中抜け時間が勤務時間（出勤時間～退勤時間までの時間）を超える場合
+				if (form.getBlankTime() != null) {
+					int workMinutes = endMinutes - startMinutes; // 実際の勤務時間（分）
+					if (form.getBlankTime() > workMinutes) {
+						result.reject("attendance.blankTimeError", null, null);
+					}
+
+				}
+
+			}
+
+		}
+
+		//エラーが1件でも設定されていた場合、プルダウン用マップを再設定
+		if (result.hasErrors()) {
+			attendanceForm.setBlankTimes(attendanceUtil.setBlankTime());
+
+			// 時間マップ（0～23）
+			Map<Integer, String> hourMap = new LinkedHashMap<>();
+			hourMap.put(null, "");
+
+			for (int h = 0; h < 24; h++) {
+				hourMap.put(h, String.format("%02d", h));
+			}
+
+			// 分マップ（0～59）
+			Map<Integer, String> minuteMap = new LinkedHashMap<>();
+			minuteMap.put(null, "");
+			for (int m = 0; m < 60; m++) {
+				minuteMap.put(m, String.format("%02d", m));
+			}
+
+			attendanceForm.setHourMap(hourMap);
+			attendanceForm.setMinuteMap(minuteMap);
 		}
 	}
 }

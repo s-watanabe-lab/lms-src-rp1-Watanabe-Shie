@@ -22,9 +22,20 @@
 	<div class="row">
 		<div class="bs-component col-sm-12">
 
-			<form th:action="@{/attendance/update}" method="post">
+			<form th:action="@{/attendance/update}" method="post" onsubmit="return confirm('更新します。よろしいですか？');">
+
+
+				<th:block th:if="${#fields.hasErrors('attendanceForm.*')}">
+					<ul style="padding-left: 0; list-style: none;">
+						<li th:each="err : ${#fields.errors('attendanceForm.*')}">
+							<span th:text="'*' + '&nbsp;' + ${err}" class="help-inline error"></span>
+						</li>
+					</ul>
+				</th:block>
+
 				<table class="table table-hover dataTable no-footer">
 					<thead>
+
 						<tr>
 							<th class="w140">日付</th>
 							<th class="w300">コース内容</th>
@@ -34,6 +45,7 @@
 							<th class="w100">ステータス</th>
 							<th class="w240">備考</th>
 						</tr>
+
 					</thead>
 					<tbody>
 						<th:block th:each="dailyAttendanceForm, stat : *{attendanceForm.attendanceList}">
@@ -69,8 +81,7 @@
 
 									<!-- ②分 -->
 									<select th:name="|attendanceList[${stat.index}].trainingStartTimeMinute|">
-										<option th:each="minute : ${attendanceForm.minuteMap}"
-										th:value="${minute.key}"
+										<option th:each="minute : ${attendanceForm.minuteMap}" th:value="${minute.key}"
 											th:text="${minute.value}"
 											th:selected="${minute.key == dailyAttendanceForm.trainingStartTimeMinute}">
 										</option>
@@ -130,6 +141,12 @@
 			</form>
 		</div>
 	</div>
+
+
+	<!-- Task.27更新ボタン押下時にダイアログ表示
+表示内容：「更新します。よろしいですか？
+OKボタン：更新処理を実行 -->
+	<script></script>
 
 </body>
 

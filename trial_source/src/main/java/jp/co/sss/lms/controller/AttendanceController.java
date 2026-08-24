@@ -141,6 +141,16 @@ public class AttendanceController {
 		//Task.26 画面から来た「時・分」を「hh:mm」形式の文字列にしてフォームにセットする
 		studentAttendanceService.formatConversion(attendanceForm);
 
+		//Task.27 入力チェックの実行
+		studentAttendanceService.updateInputCheck(attendanceForm, result);
+
+		//エラーが1件でもあれば、変更画面にとどまる
+		if (result.hasErrors()) {
+			model.addAttribute("attendanceForm", attendanceForm);
+
+			return "attendance/update";
+		}
+
 		// 更新
 		String message = studentAttendanceService.update(attendanceForm);
 		model.addAttribute("message", message);

@@ -66,6 +66,7 @@ public interface TStudentAttendanceMapper {
 	Boolean update(TStudentAttendance tStudentAttendance);
 
 	/**
+	 *渡辺志映 --Task.25：勤怠管理画面--
 	 *過去日の未入力件数取得 
 	 * 
 	 * @param lmsUserId  ユーザーId
@@ -73,7 +74,7 @@ public interface TStudentAttendanceMapper {
 	 * @param currentDate 現在日付
 	 * @return 未入力件数
 	 */
-	Integer notEnterCheck(@Param("lmsUserId") Integer lmsUserId,
+	Integer notEnterCount(@Param("lmsUserId") Integer lmsUserId,
 			@Param("deleteFlg") Short deletFlg,
 			@Param("currentDate") Date trainingDate);
 

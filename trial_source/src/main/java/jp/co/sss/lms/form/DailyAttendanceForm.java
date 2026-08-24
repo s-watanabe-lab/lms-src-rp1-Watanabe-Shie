@@ -29,6 +29,14 @@ public class DailyAttendanceForm {
 	/** 退勤時間（分）*/
 	private Integer trainingEndTimeMinute;
 	
+	//Task.27 入力チェック
+	//出勤時間の未入力・退勤時間の未入力
+	//DailyAttendanceFormごとにチェックを実施
+	//時刻の「時」だけと、「分」だけ
+	//「出勤なし、退勤あり」の矛盾チェック
+	//[if エラーがなければ]出勤時刻 > 退勤時刻になってないかの比較チェック
+	//[if 中抜け時間が入力されている場合]出勤時の差分から計算される最大受講時間よりも中抜け時間が長くないかチェック
+	
 	/** 退勤時間 */
 	private String trainingEndTime;
 	/** 中抜け時間 */
