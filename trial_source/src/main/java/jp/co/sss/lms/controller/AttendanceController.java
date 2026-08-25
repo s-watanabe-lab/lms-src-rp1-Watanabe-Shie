@@ -138,10 +138,17 @@ public class AttendanceController {
 	public String complete(AttendanceForm attendanceForm, Model model, BindingResult result)
 			throws ParseException {
 
-		//Task.26 画面から来た「時・分」を「hh:mm」形式の文字列にしてフォームにセットする
+		/**
+		 * 渡辺志映　--Task.26 勤怠管理直接変更画面--
+		 * 画面から来た「時・分」を「hh:mm」形式の文字列にしてフォームにセットする
+		 */
 		studentAttendanceService.formatConversion(attendanceForm);
 
-		//Task.27 入力チェックの実行
+		/**
+		 * 渡辺志映 --Task.27 勤怠管理直接変更画面--
+		 * 入力チェックの実行
+		 */
+		
 		studentAttendanceService.updateInputCheck(attendanceForm, result);
 
 		//エラーが1件でもあれば、変更画面にとどまる

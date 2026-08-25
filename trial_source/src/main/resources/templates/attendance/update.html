@@ -29,7 +29,7 @@
 	<div class="row">
 		<div class="bs-component col-sm-12">
 
-			<form th:action="@{/attendance/update}" method="post" onsubmit="return confirm('更新します。よろしいですか？');">
+			<form th:action="@{/attendance/update}" method="post">
 
 
 				<th:block th:if="${#fields.hasErrors('attendanceForm.*')}">
@@ -78,7 +78,8 @@
 								<!-- 出勤時間（プルダウン化） -->
 								<td class="w140">
 
-									<!-- ①時 -->
+									<!-- Task.26 ①時 -->
+									<!-- Task.27 セレクトボックスを赤色で表示-->
 									<select th:name="|attendanceList[${stat.index}].trainingStartTimeHour|"
 										th:classappend="${#fields.hasErrors('attendanceForm.attendanceList[__${stat.index}__].trainingStartTime') and (dailyAttendanceForm.trainingStartTimeHour == null or dailyAttendanceForm.trainingStartTimeMinute != null)} ? 'error-select' : ''">
 										<option th:each="hour : ${attendanceForm.hourMap}" th:value="${hour.key}"
@@ -87,7 +88,8 @@
 										</option>
 									</select>：
 
-									<!-- ②分 -->
+									<!-- Task.26 ②分 -->
+									<!-- Task.27 セレクトボックスを赤色で表示-->
 									<select th:name="|attendanceList[${stat.index}].trainingStartTimeMinute|"
 										th:classappend="${#fields.hasErrors('attendanceForm.attendanceList[__${stat.index}__].trainingStartTime') and (dailyAttendanceForm.trainingStartTimeMinute == null or dailyAttendanceForm.trainingStartTimeHour != null)} ? 'error-select' : ''">
 										<option th:each="minute : ${attendanceForm.minuteMap}" th:value="${minute.key}"
@@ -101,7 +103,8 @@
 
 								<td class="w140">
 
-									<!-- ①時 -->
+									<!-- Task.26 ①時 -->
+									<!-- Task.27 セレクトボックスを赤色で表示-->
 									<select th:name="|attendanceList[${stat.index}].trainingEndTimeHour|"
 										th:classappend="${#fields.hasErrors('attendanceForm.attendanceList[__${stat.index}__].trainingEndTime') and (dailyAttendanceForm.trainingEndTimeHour == null or dailyAttendanceForm.trainingEndTimeMinute != null)} ? 'error-select' : ''">
 										<option th:each="hour : ${attendanceForm.hourMap}" th:value="${hour.key}"
@@ -110,7 +113,8 @@
 										</option>
 									</select>：
 
-									<!-- ②分 -->
+									<!-- Task.26 ②分 -->
+									<!-- Task.27 セレクトボックスを赤色で表示-->
 									<select th:name="|attendanceList[${stat.index}].trainingEndTimeMinute|"
 										th:classappend="${#fields.hasErrors('attendanceForm.attendanceList[__${stat.index}__].trainingEndTime') and (dailyAttendanceForm.trainingEndTimeMinute == null or dailyAttendanceForm.trainingEndTimeHour != null)} ? 'error-select' : ''">
 										<option th:each="minute : ${attendanceForm.minuteMap}" th:value="${minute.key}"
@@ -149,13 +153,23 @@
 					<th:block th:if="${session.loginUserDto.role != '0001'}">
 						<input type="submit" value="戻る" name="indexCompany" class="btn btn-default" />
 					</th:block>
-					<input type="submit" value="更新" name="complete" class="btn btn-info" />
+					<input type="submit" value="更新" name="complete" id="updateBtn" class="btn btn-info" />
 				</div>
 
 			</form>
 		</div>
 	</div>
-
+	
+	<!-- Task.27 更新確認ダイアログ表示 -->
+	<script>
+		document.getElementById('updateBtn').addEventListener('click', function (event) {
+			// 確認ダイアログを表示
+			if (!confirm('更新します。よろしいですか？')) {
+				// 「キャンセル」が押されたら送信をストップする
+				event.preventDefault();
+			}
+		});
+	</script>
 </body>
 
 </html>
