@@ -510,19 +510,21 @@ public class StudentAttendanceService {
 			if (form.getNote() != null && form.getNote().length() > 100) {
 
 				//メッセージIDとパラメータを指定してエラー登録
-				result.reject("maxlength", new Object[] { "備考", "100" }, null);
+				result.rejectValue("attendanceList[" + i + "].note", "maxlength", new Object[] { "備考", "100" }, null);
 			}
 
 			//b.出勤「時」と「分」の片側未入力チェック
 			if ((form.getTrainingStartTimeHour() != null && form.getTrainingStartTimeMinute() == null)
-					|| (form.getTrainingStartTime() == null && form.getTrainingStartTimeMinute() != null)) {
-				result.reject("inout.invalid", new Object[] { "出勤時間" }, null);
+					|| (form.getTrainingStartTimeHour() == null && form.getTrainingStartTimeMinute() != null)) {
+				result.rejectValue("attendanceList[" + i + "].trainingStartTime", "input.invalid",
+						new Object[] { "出勤時間" }, null);
 			}
 
-			//c. 出勤「時」と「分」の片側未入力チェック
+			//c. 退勤「時」と「分」の片側未入力チェック
 			if ((form.getTrainingEndTimeHour() != null && form.getTrainingEndTimeMinute() == null)
-					|| (form.getTrainingEndTime() == null && form.getTrainingEndTimeMinute() != null)) {
-				result.reject("inout.invalid", new Object[] { "退勤時間" }, null);
+					|| (form.getTrainingEndTimeHour() == null && form.getTrainingEndTimeMinute() != null)) {
+				result.rejectValue("attendanceList[" + i + "].trainingEndTime", "input.invalid",
+						new Object[] { "退勤時間" }, null);
 			}
 
 			// 出退勤入力の有無判定（時・分が揃っているか）
@@ -531,7 +533,8 @@ public class StudentAttendanceService {
 
 			// d. 出勤時間に入力無し & 退勤時間に入力ありの場合
 			if (!hasStart && hasEnd) {
-				result.reject("attendance.punchInEmpty", null, null);
+				result.rejectValue("attendanceList[" + i + "].trainingStartTime", "attendance.punchInEmpty", null,
+						null);
 			}
 
 			// 出退勤の両方が入力されている場合のみ、時間の比較計算を行う
@@ -546,14 +549,16 @@ public class StudentAttendanceService {
 
 				//e.出勤時間 > 退勤時間の場合
 				if (startMinutes > endMinutes) {
-					result.reject("attendance.trainingTimeRange", new Object[] { i + 1 }, null);
+					result.rejectValue("attendanceList[" + i + "].trainingEndTime", "attendance.trainingTimeRange",
+							new Object[] { i + 1 }, null);
 				}
 
 				//f.中抜け時間が勤務時間（出勤時間～退勤時間までの時間）を超える場合
 				if (form.getBlankTime() != null) {
 					int workMinutes = endMinutes - startMinutes; // 実際の勤務時間（分）
 					if (form.getBlankTime() > workMinutes) {
-						result.reject("attendance.blankTimeError", null, null);
+						result.rejectValue("attendanceList[" + i + "].blankTime", "attendance.blankTimeError", null,
+								null);
 					}
 
 				}
