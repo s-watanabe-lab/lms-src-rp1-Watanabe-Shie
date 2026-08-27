@@ -108,14 +108,22 @@
 	<select id="notEnterCount" resultType="java.lang.Integer">
 
 		SELECT COUNT(*)
-		FROM t_student_attendance
+		FROM
+		t_student_attendance
+		
 		WHERE lms_user_id = #{lmsUserId}
-		AND
+		
+		AND<!-- 本日より過去の日付 -->
+		training_date &lt; #{trainingDate}
+		
+		AND<!-- 削除されていない -->
 		delete_flg = #{deleteFlg}
-		AND training_date &lt; #{currentDate}
-		AND
+		
+		AND<!-- 欠席を除く -->
 		status != 1
-		AND (training_start_time = '' OR training_end_time = '' OR
+		
+		AND<!-- 出勤または退勤が未入力 -->
+		(training_start_time = '' OR training_end_time = '' OR
 		training_start_time IS NULL OR training_end_time IS NULL)
 
 	</select>
