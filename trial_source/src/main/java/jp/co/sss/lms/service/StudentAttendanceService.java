@@ -1,6 +1,7 @@
 package jp.co.sss.lms.service;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -394,26 +395,29 @@ public class StudentAttendanceService {
 	 * @return 未入力がある場合はtrue, ない場合はfalse
 	 * @throws ParseException
 	 */
-	public boolean notEnterCheck() throws ParseException {
+	public Boolean notEnterCheck() throws ParseException {
 
 		//Service内でユーザーIDを取得する
 		Integer lmsUserId = loginUserDto.getLmsUserId();
 
-		//1.今日の日付を取得する
+		// 1．今日の日付を取得する
 		Date today = new Date();
 
-		//削除フラグ（0：未削除）
+		// 2. SimpleDateFormatクラスでフォーマットパターンを設定
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+
+		// 3. フォーマットを適用して「時・分・秒」を切り捨てた日付オブジェクトを作る
+		String dateStr = sdf.format(today);
+		Date currentDate = sdf.parse(dateStr);
+
+		// 4．削除フラグ（0：未削除）
 		Short deleteFlg = 0;
 
 		//Mapperを呼び出し、未入力件数（Integer）を取得する
-		Integer count = tStudentAttendanceMapper.notEnterCount(lmsUserId, deleteFlg, today);
+		Integer count = tStudentAttendanceMapper.notEnterCount(lmsUserId, deleteFlg, currentDate);
 
 		//件数が0より大きければ、true、そうでなければfaｌseを返す
-		if (count != null && count > 0) {
-			return true;
-		} else {
-			return false;
-		}
+		return count > 0;
 	}
 
 	/**
@@ -460,37 +464,6 @@ public class StudentAttendanceService {
 			}
 		}
 	}
-
-	/**
-	 * 渡辺志映 --Task.27 勤怠時間
-	 * Ⅱ．入力パラメータ．勤怠リスト[n]の件数分、下記チェックを行う
-	 * ａ．入力パラメータ．勤怠リスト[n]．備考の文字数　＞　100　の場合、下記エラーメッセージを追加設定
-	 * メッセージID：maxlength、パラメータ："備考"、"100"
-	 * 
-	 * ｂ．入力パラメータ．勤怠リスト[n]．出勤時間（時）、出勤時間（分）の一方が入力有り　＆　もう一方が入力なしの場合、
-	 * メッセージID：input.invalid、パラメータ："出勤時間"
-	 * 
-	 * ｃ．入力パラメータ．勤怠リスト[n]．退勤時間（時）、退勤時間（分）の一方が入力有り　＆　もう一方が入力なしの場合、 
-	 * メッセージID：input.invalid、パラメータ："退勤時間"
-	 * 
-	 * ｄ．入力パラメータ．勤怠リスト[n]．出勤時間に入力なし　＆　退勤時間に入力あり　の場合、
-	 * メッセージID:attendance.punchInEmpty、パラメータ：なし
-	 * 
-	 * ｅ．入力パラメータ．勤怠リスト[n]．出勤時間　＞　退勤時間　の場合、下記エラーメッセージを追加設定
-	 * メッセージID:attendance.training.TimeRange、パラメータ：n
-	 * 
-	 * ｆ．入力パラメータ．勤怠リスト[n]．中抜け時間が勤務時間（出勤時間～退勤時間までの時間）を超える場合、下記エラーメッセージを追加設定
-	 * メッセージID:attendance.blank.TimeError、パラメータ：なし
-	 * 
-	 * Ⅲ．Ⅱでエラーメッセージが設定されていた場合、下記内容を設定し勤怠情報直接変更画面へ遷移
-	 * 勤怠FORM．中抜け時間（選択肢）= 勤怠Utilを使用して選択肢用の中抜け時間マップを取得
-	 * 勤怠FORM．時間マップ（選択肢）= 勤怠Utilを使用して選択肢用の時間マップを取得
-	 * 勤怠FORM．分マップ（選択肢）= 勤怠Utilを使用して選択肢用の分マップを取得
-	 * 
-	 * 画面レイアウト設計書より、
-	 * コントローラー：/attendance/update
-	 * パラメータ：complete
-	 */
 
 	/**
 	 * 渡辺志映 --Task.27 勤怠管理直接変更画面（入力チェックの実装、ダイアログの追加）
