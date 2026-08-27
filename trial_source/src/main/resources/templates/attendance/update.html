@@ -40,12 +40,22 @@
 					</ul>
 				</th:block>
 
+				<!--				 Task.29 勤怠管理直接変更画面 一覧のスクロール表示 -->
+				<!--				 表を囲むスクロール用の箱（高さは約500pxに設定 -->
+				<!--				<div style="max-height: 500px; overflow: auto;">-->
+
+
 				<table class="table table-hover dataTable no-footer">
 					<thead>
 
 						<tr>
 							<th class="w140">日付</th>
 							<th class="w300">コース内容</th>
+
+							<!-- Task.28 勤怠管理直接変更画面 -->
+							<!-- 定時ボタン用のスペース -->
+							<th class="w60"></th>
+
 							<th class="w70">出勤</th>
 							<th class="w70">退勤</th>
 							<th class="w100">中抜け時間</th>
@@ -72,7 +82,17 @@
 										th:value="${dailyAttendanceForm.statusDispName}" />
 								</th:block>
 								<td class="w140">[[${dailyAttendanceForm.dispTrainingDate}]]</td>
+
+
 								<td class="w300">[[${dailyAttendanceForm.sectionName}]]</td>
+
+								<!-- Task.28 勤怠管理直接変更画面 -->
+								<!-- 定時ボタンの追加 -->
+								<td class="w60">
+									<button type="button" class="btn btn-success btn-sm js-teiji-btn">定時</button>
+								</td>
+
+
 
 								<!-- Task.26 -->
 								<!-- 出勤時間（プルダウン化） -->
@@ -145,6 +165,7 @@
 						</th:block>
 					</tbody>
 				</table>
+				<!--				</div>-->
 
 				<div class="form-group">
 					<th:block th:if="${session.loginUserDto.role == '0001'}">
@@ -159,7 +180,7 @@
 			</form>
 		</div>
 	</div>
-	
+
 	<!-- Task.27 更新確認ダイアログ表示 -->
 	<script>
 		document.getElementById('updateBtn').addEventListener('click', function (event) {
@@ -169,6 +190,30 @@
 				event.preventDefault();
 			}
 		});
+
+		//Tasl.28 勤怠管理直接変更画面：定時ボタン追加
+		const teijiBtns = document.querySelectorAll('.js-teiji-btn');
+
+		teijiBtns.forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				// クリックされたボタンの親の「行（tr）」を見つける
+				const row = this.closest('tr');
+
+				// その行の中にある出退勤のセレクトボックスを探す
+				// （name属性の末尾の文字をヒントに探します）
+				const startHour = row.querySelector('select[name$=".trainingStartTimeHour"]');
+				const startMinute = row.querySelector('select[name$=".trainingStartTimeMinute"]');
+				const endHour = row.querySelector('select[name$=".trainingEndTimeHour"]');
+				const endMinute = row.querySelector('select[name$=".trainingEndTimeMinute"]');
+
+				// セレクトボックスに値をセットする（09:00 ～ 18:00）
+				if (startHour) startHour.value = "9";
+				if (startMinute) startMinute.value = "0";
+				if (endHour) endHour.value = "18";
+				if (endMinute) endMinute.value = "0";
+			});
+		});
+
 	</script>
 </body>
 
