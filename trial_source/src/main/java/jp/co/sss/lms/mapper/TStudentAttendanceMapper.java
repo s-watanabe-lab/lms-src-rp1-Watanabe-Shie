@@ -71,7 +71,7 @@ public interface TStudentAttendanceMapper {
 	 * 
 	 * @param lmsUserId  ユーザーId
 	 * @param deletFlg 削除フラグ
-	 * @param currentDate 現在日付
+	 * @param trainingDate 日付
 	 * @return 未入力件数
 	 */
 	Integer notEnterCount(@Param("lmsUserId") Integer lmsUserId,
